@@ -21,7 +21,7 @@ exports.readStandings = functions.pubsub.schedule("0 18 * * *")
               admin.firestore()
                   .collection("standings")
                   .doc(value.rank.toString())
-                  .set(value);
+                  .set(value, {merge: true});
             });
           })
           .catch((err) => console.log(err));
@@ -43,8 +43,8 @@ exports.readTeams = functions.pubsub.schedule("0 18 * * *")
             teams.forEach((value) => {
               admin.firestore()
                   .collection("teams")
-                  .doc(value.team.code)
-                  .set(value);
+                  .doc(value.team.id.toString())
+                  .set(value, {merge: true});
             });
           })
           .catch((err) => console.log(err));
@@ -66,7 +66,7 @@ exports.readPlayers = functions.pubsub.schedule("0 18 * * *")
             admin.firestore()
                 .collection("players")
                 .doc("topscorers")
-                .set({topscorers: players});
+                .set({topscorers: players}, {merge: true});
           })
           .catch((err) => console.log(err));
     });
@@ -83,17 +83,26 @@ exports.readFixtures = functions.pubsub.schedule("0 18 * * *")
       })
           .then(async (response) => {
             const data = await response.json();
-            const fixtures = data.response;
+            const fixtures = data.response.map((e) => ({
+              id: e.fixture.id,
+              date: e.fixture.date,
+              status: e.fixture.status.long,
+              home: e.teams.home,
+              away: e.teams.away,
+              homeGoals: e.goals.home,
+              awayGoals: e.goals.away,
+            }),
+            );
             admin.firestore()
                 .collection("fixtures")
                 .doc("2022")
-                .set({fixtures: fixtures});
+                .set({fixtures: fixtures}, {merge: true});
           })
           .catch((err) => console.log(err));
     });
 
 // deploy 테스트 예시
-// exports.readFixtures = functions.pubsub.schedule("every 1 minutes")
+// exports.getTeams = functions.pubsub.schedule("every 1 minutes")
 //     .onRun(async (context) => {
 //       await fetch("https://v3.football.api-sports.io/fixtures?league=39&season=2022", {
 //         "method": "GET",
@@ -104,11 +113,20 @@ exports.readFixtures = functions.pubsub.schedule("0 18 * * *")
 //       })
 //           .then(async (response) => {
 //             const data = await response.json();
-//             const fixtures = data.response;
+//             const fixtures = data.response.map((e) => ({
+//               id: e.fixture.id,
+//               date: e.fixture.date,
+//               status: e.fixture.status.long,
+//               home: e.teams.home,
+//               away: e.teams.away,
+//               homeGoals: e.goals.home,
+//               awayGoals: e.goals.away,
+//             }),
+//             );
 //             admin.firestore()
 //                 .collection("fixtures")
 //                 .doc("2022")
-//                 .set({fixtures: fixtures});
+//                 .set({fixtures: fixtures}, {merge: true});
 //           })
 //           .catch((err) => console.log(err));
 //     });
@@ -128,4 +146,3 @@ exports.readFixtures = functions.pubsub.schedule("0 18 * * *")
 //           })
 //           .catch((err) => console.log(err));
 //     });
-
