@@ -108,7 +108,7 @@ exports.readFixtures = functions.pubsub.schedule("0 18 * * *")
 //         "method": "GET",
 //         "headers": {
 //           "x-rapidapi-host": "v3.football.api-sports.io",
-//           "x-rapidapi-key": "8df29bf352707d5a5ee8e084800d0e2a",
+//           "x-rapidapi-key": process.env.API_KEY,
 //         },
 //       })
 //           .then(async (response) => {
